@@ -4,7 +4,6 @@ JSON into formatted datatypes relevent to the function called.
 """
 
 import json
-from json import encoder
 import pathlib
 import subprocess as sub
 from sys import platform
@@ -20,7 +19,7 @@ def _init():
     else:
         raise EnvironmentError("This library is currently only compatible with Windows")
 
-def getall(filepath, raw=False):
+def all(filepath, raw=False):
     """
     Returns a dictionary with 2 keys: 'path' and 'tracks'. 'path' is the original path
     that was passed into this function. 'tracks' contains a list of tracks where each
@@ -55,14 +54,14 @@ def getall(filepath, raw=False):
 
     return dict(fileoutput)
 
-def getaudio(filepath, tracks=False):
+def audio(filepath, tracks=False):
     """
     Returns the total number of audio channels as an int. 
 
     If 'tracks=True', it instead returns a list of tuples.
     The tuples contain the index of the stream and the number of channels in that stream.
     """
-    output = getall(filepath)
+    output = all(filepath)
     
     chspertrack = []
     trackorder = []
@@ -80,15 +79,18 @@ def getaudio(filepath, tracks=False):
             totalchs += int(ch)
         return int(totalchs)
     
-def getfps(filepath):
-    output = getall(filepath)
+def fps(filepath):
+    output = all(filepath)
 
     for track in output['tracks']:
         if track['@type'] == "Video":
             return str(track['FrameRate'])
 
-def getstreamtypes(filepath):
-    output = getall(filepath)
+def streamtypes(filepath):
+    """
+    Returns a list that contains types for each stream, in order.
+    """
+    output = all(filepath)
 
     alltypes = []
     order = []
@@ -103,5 +105,3 @@ def getstreamtypes(filepath):
     sorted = [x[0] for x in tosort]
     
     return sorted
-
-
