@@ -39,7 +39,7 @@ def all(filepath, raw=False):
     fileoutput = json.loads(rawstr)
 
     if raw:
-        return raw
+        return rawbytes
 
     fileoutput = fileoutput['media']
 
