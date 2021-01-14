@@ -40,7 +40,7 @@ mediaprobe.streamtypes('/path/to/file.mov')
 
 allinfo = mediaprobe.all('/path/to/file.mov')
 # returns dict with full output of mediainfo
-allinfo['tracks'][0]['OverallBitRate']
+allinfo['tracks'][1]['OverallBitRate']
 # pull any other desired info out of track
 ```
 ##### More utility functions will eventually be added.
