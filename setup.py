@@ -23,7 +23,12 @@ setup(
         'License :: OSI Approved :: MIT License',
         'Programming Language :: Python :: 3 :: Only',
     ],
-    packages=[''],  # Required
+    packages=['mediaprobe'],  # Required
     python_requires='>=3.6, <4',
     install_requires=[],  # Optional
+    include_package_data=True,
+    # package_data = {
+    #     '': ['readme.md'],
+    #     'bin': ['mediainfo.exe']
+    # }
 )

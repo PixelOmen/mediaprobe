@@ -9,14 +9,12 @@ import subprocess as sub
 from sys import platform
 
 testfile = pathlib.Path('c:', '/Mount', 'rei08', 'DCI', 'testing', '_Testfiles', 'Logan_8Ch.mov')
+here = pathlib.Path(__file__).parent.resolve()
 
-def _init():
-    global mibin
-
-    if platform == "win32":
-        mibin = pathlib.Path("./bin/mediainfo.exe")
-    else:
-        raise EnvironmentError("This library is currently only compatible with Windows")
+if platform == "win32":
+    mibin = here / 'bin' / 'mediainfo.exe'
+else:
+    raise EnvironmentError("This library is currently only compatible with Windows")
 
 def all(filepath, raw=False):
     """
@@ -28,10 +26,7 @@ def all(filepath, raw=False):
     """
     if not pathlib.Path(filepath).is_file():
         raise FileNotFoundError(f"'{filepath}' is not a path to a file or does not exist")
-    try:
-        mibin
-    except NameError:
-        _init()
+
     miproc = sub.Popen(f"{str(mibin)} {filepath} --output=JSON", stdin=sub.PIPE, stdout=sub.PIPE, stderr=sub.PIPE)
     rawbytes = miproc.stdout.read()
     rawstr = rawbytes.decode('utf-8')
