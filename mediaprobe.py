@@ -8,7 +8,6 @@ import pathlib
 import subprocess as sub
 from sys import platform
 
-testfilehome = pathlib.Path("D:", "/CodingProjects", "_ffmpeg", "resolve_OG.mov")
 testfile = pathlib.Path('c:', '/Mount', 'rei08', 'DCI', 'testing', '_Testfiles', 'Logan_8Ch.mov')
 
 def _init():
