@@ -3,27 +3,32 @@
 A straightforward wrapper for the Mediainfo CLI tool. It calls mediainfo as a subprocess and parses the returning JSON into formatted datatypes relevent to the function called.
 
 ---
-
+##
 ## Installation
+
+#### Pip Install
+
+```bash
+pip install mediaprobe
+```
 
 #### DIRECT PYTHON INSTALL
 
 To install checked out source code:
 
 ```bash
-python[#] setup.py install
+python setup.py install
 ```
 
 To install the library in develop mode (similar to `pip install -e`), run:
 
 ```bash
-python[#] setup.py develop
+python setup.py develop
 ```
 
-#### Pip Install
 
-Coming Soon
 
+##
 ## Usage
 
 ```python
@@ -45,6 +50,7 @@ allinfo['tracks'][1]['OverallBitRate']
 ```
 ##### More utility functions will eventually be added.
 
+##
 ## Contributing
 Pull requests are welcome. 
 
