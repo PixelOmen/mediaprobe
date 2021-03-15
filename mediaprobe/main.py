@@ -6,12 +6,17 @@ JSON into formatted datatypes relevent to the function called.
 import json
 import pathlib
 import subprocess as sub
-from sys import platform
+import sys
 
 here = pathlib.Path(__file__).parent.resolve()
+platform = sys.platform
 
 if platform == "win32":
     mibin = here / 'bin' / 'mediainfo.exe'
+    if not mibin.is_file():
+    	mibin = here.parent.resolve() / 'bin' / 'mediainfo.exe'
+    if not mibin.is_file():
+        raise EnvironmentError("Unable to locate the MediaInfo exe")
 else:
     raise EnvironmentError("This library is currently only compatible with Windows")
 
@@ -76,6 +81,34 @@ def audio(filepath, tracks=False):
         for ch in chspertrack:
             totalchs += int(ch)
         return int(totalchs)
+
+def findaudiostream(filepath, chnum):
+    """
+    Returns the stream number for the provided audio. E.g. if the source file has 4 streams in this order:
+    Video, Data, 5.1, Stereo - Chs 1-6 would return "2", and 7-8 would return "3".
+    """
+    if type(chnum) != int:
+        raise TypeError(f"chnum parameter must be int not {type(chnum)}")
+    elif chnum <= 0:
+        raise ValueError(f"chnum must be greater than 0. Got: {chnum}")
+
+    totalchs = audio(filepath, False)
+    audiostreams = audio(filepath, True)
+
+    if not totalchs or not audiostreams:
+        return False
+
+    if chnum > totalchs:
+        raise ValueError(f"chnum is greater than the total number of channels. chnum: {chnum} , total: {totalchs}")
+
+    chcount = 0
+    streamindex = False
+    for stream in audiostreams:
+        chcount += int(stream[1])
+        if chcount >= chnum:
+            streamindex = stream[0]
+            break
+    return str(streamindex)
     
 def fps(filepath):
     output = all(filepath)
@@ -140,3 +173,7 @@ def streamtypes(filepath):
     sorted = [x[0] for x in tosort]
     
     return sorted
+
+if __name__ == "__main__":
+    testfile = pathlib.Path(r"C:\Mount\rei08\encoding\_FFMPEG_CC_PROXY\_Old\Other\2997_ASM_NDF\Input\gbi_00_final_txtd_178_HQ_20_2997_NDF_wf.mov")
+    print(findaudiostream(testfile, 0))
