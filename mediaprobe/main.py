@@ -8,7 +8,6 @@ import pathlib
 import subprocess as sub
 from sys import platform
 
-testfile = pathlib.Path('c:', '/Mount', 'rei08', 'DCI', 'testing', '_Testfiles', 'Logan_8Ch.mov')
 here = pathlib.Path(__file__).parent.resolve()
 
 if platform == "win32":
@@ -35,7 +34,10 @@ def all(filepath, raw=False):
     if raw:
         return rawbytes
 
-    fileoutput = fileoutput['media']
+    try:
+        fileoutput = fileoutput['media']
+    except KeyError:
+        return False
 
     path = fileoutput['@ref']
     del fileoutput['@ref']
@@ -44,7 +46,6 @@ def all(filepath, raw=False):
     tracks = fileoutput['track']
     del fileoutput['track']
     fileoutput['tracks'] = tracks
-
 
     return dict(fileoutput)
 
@@ -80,6 +81,35 @@ def fps(filepath):
         if track['@type'] == "Video":
             return str(track['FrameRate'])
 
+    return False
+
+def tc(filepath):
+    """
+    Looks for the starting TC in the "Other" track type, under the TimeCode_FirstFrame field.
+    If it can't find it, it returns False.
+    """
+    output = all(filepath)
+    try:
+        tracks = output["tracks"]
+    except KeyError:
+        return False
+    
+    othertrk = None
+    for trk in tracks:
+        if trk["@type"] == "Other":
+            othertrk = trk
+
+    if othertrk == None:
+        return False
+
+    try:
+        tc = othertrk["TimeCode_FirstFrame"]
+    except KeyError:
+        return False
+    else:
+        return str(tc)
+
+
 def streamtypes(filepath):
     """
     Returns a list that contains types for each stream, in order.
@@ -99,3 +129,7 @@ def streamtypes(filepath):
     sorted = [x[0] for x in tosort]
     
     return sorted
+
+if __name__ == "__main__":
+    testfile = pathlib.Path(r"C:\Mount\rei08\encoding\_FFMPEG_CC_PROXY\_Old\Other\2997_ASM_NDF\Input\gbi_00_final_txtd_178_HQ_20_2997_NDF_wf.mov")
+    print(tc(testfile))
