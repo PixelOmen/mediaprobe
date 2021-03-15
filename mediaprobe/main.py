@@ -57,6 +57,9 @@ def audio(filepath, tracks=False):
     The tuples contain the index of the stream and the number of channels in that stream.
     """
     output = all(filepath)
+
+    if not output:
+    	return False
     
     chspertrack = []
     trackorder = []
@@ -77,6 +80,9 @@ def audio(filepath, tracks=False):
 def fps(filepath):
     output = all(filepath)
 
+    if not output:
+    	return False
+
     for track in output['tracks']:
         if track['@type'] == "Video":
             return str(track['FrameRate'])
@@ -89,6 +95,9 @@ def tc(filepath):
     If it can't find it, it returns False.
     """
     output = all(filepath)
+    if not output:
+    	return False
+
     try:
         tracks = output["tracks"]
     except KeyError:
@@ -115,6 +124,8 @@ def streamtypes(filepath):
     Returns a list that contains types for each stream, in order.
     """
     output = all(filepath)
+    if not output:
+    	return False
 
     alltypes = []
     order = []
@@ -129,7 +140,3 @@ def streamtypes(filepath):
     sorted = [x[0] for x in tosort]
     
     return sorted
-
-if __name__ == "__main__":
-    testfile = pathlib.Path(r"C:\Mount\rei08\encoding\_FFMPEG_CC_PROXY\_Old\Other\2997_ASM_NDF\Input\gbi_00_final_txtd_178_HQ_20_2997_NDF_wf.mov")
-    print(tc(testfile))
