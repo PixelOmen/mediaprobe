@@ -1,1 +1,1 @@
-from mediaprobe.main import *
+from .main import *
