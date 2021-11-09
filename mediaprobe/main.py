@@ -4,17 +4,23 @@ JSON into formatted datatypes relevent to the function called.
 """
 
 import json
-import pathlib
 import subprocess as sub
-from sys import platform
+import sys
+from pathlib import Path
 
-testfile = pathlib.Path('c:', '/Mount', 'rei08', 'DCI', 'testing', '_Testfiles', 'Logan_8Ch.mov')
-here = pathlib.Path(__file__).parent.resolve()
+testfile = r"\\10.0.20.175\rei08\DCI\testing\_Testfiles\Logan_8Ch.mov"
 
-if platform == "win32":
-    mibin = here / 'bin' / 'mediainfo.exe'
+if getattr(sys, 'frozen', False):
+    binpath = Path(sys._MEIPASS) / 'bin'
 else:
-    raise EnvironmentError("This library is currently only compatible with Windows")
+    binpath = Path(__file__).parent / 'bin'
+
+if sys.platform == "win32":
+    mibin = str(binpath / 'mediainfo.exe')
+elif sys.platform == "darwin":
+    mibin = str(binpath / 'mediainfo')
+else:
+    raise EnvironmentError("This library is currently only compatible with Windows and MacOS")
 
 def all(filepath, raw=False):
     """
@@ -24,7 +30,7 @@ def all(filepath, raw=False):
 
     Setting 'raw' to 'True' will return the unchanged JSON output(as bytes) straight from the Mediainfo CLI.
     """
-    if not pathlib.Path(filepath).is_file():
+    if not Path(filepath).is_file():
         raise FileNotFoundError(f"'{filepath}' is not a path to a file or does not exist")
 
     if " " in str(filepath):
@@ -108,3 +114,57 @@ def streamtypes(filepath):
     sorted = [x[0] for x in tosort]
     
     return sorted
+
+def duration(filepath, frames=True):
+    output = all(filepath)
+
+    for track in output['tracks']:
+        if track['@type'] == "Video":
+            if frames:
+                return str(track['FrameCount'])
+            else:
+                return str(track['Duration'])
+    return None
+
+def colorspace(filepath):
+    output = all(filepath)
+    for track in output['tracks']:
+        if track['@type'] == 'Video':
+            try:
+                found = track['ColorSpace']
+            except KeyError:
+                return None
+            else:
+                return found
+    for track in output['tracks']:
+        if track['@type'] == 'Image':
+            try:
+                found = track['ColorSpace']
+            except KeyError:
+                return None
+            else:
+                return found
+
+def search(filepath, searchterm, tracktype):
+    if tracktype.lower() == 'video':
+        tracktype = "Video"
+    elif tracktype.lower() == "audio":
+        tracktype = "Audio"
+    elif tracktype.lower() == "image":
+        tracktype = "Image"
+    else:
+        raise ValueError(f"Invalid tracktype: {tracktype}")
+    output = all(filepath)
+
+    for track in output['tracks']:
+        if track['@type'] == tracktype:
+            try:
+                found = track[searchterm]
+            except KeyError:
+                return None
+            else:
+                return found
+
+
+if __name__ == "__main__":
+    print(fps(testfile))
