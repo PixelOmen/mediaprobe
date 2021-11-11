@@ -5,22 +5,20 @@ JSON into formatted datatypes relevent to the function called.
 
 import json
 import subprocess as sub
-import sys
 from pathlib import Path
+import sys
 
 testfile = r"\\10.0.20.175\rei08\DCI\testing\_Testfiles\Logan_8Ch.mov"
 
-if getattr(sys, 'frozen', False):
-    binpath = Path(sys._MEIPASS) / 'bin'
+if __name__ == "__main__":
+    if sys.platform == "win32":
+        mibin = str(Path(__file__) / "bin" / "mediainfo.exe")
+    elif sys.platform == "darwin":
+        mibin = str(Path(__file__) / "bin" / "mediainfo")
+    else:
+        raise RuntimeError(f"Platform not supported: {sys.platform}")
 else:
-    binpath = Path(__file__).parent / 'bin'
-
-if sys.platform == "win32":
-    mibin = str(binpath / 'mediainfo.exe')
-elif sys.platform == "darwin":
-    mibin = str(binpath / 'mediainfo')
-else:
-    raise EnvironmentError("This library is currently only compatible with Windows and MacOS")
+    from . import mibin
 
 def all(filepath, raw=False):
     """
@@ -39,7 +37,10 @@ def all(filepath, raw=False):
     miproc = sub.Popen(f"{str(mibin)} {filepath} --output=JSON", stdin=sub.PIPE, stdout=sub.PIPE, stderr=sub.PIPE)
     rawbytes = miproc.stdout.read()
     rawstr = rawbytes.decode('utf-8')
-    fileoutput = json.loads(rawstr)
+    try:
+        fileoutput = json.loads(rawstr)
+    except json.JSONDecodeError:
+        return False
 
     if raw:
         return rawbytes
