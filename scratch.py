@@ -1,7 +1,10 @@
-mydict = {
-    'path': 'testpath',
-    'tracks': 'testtrack'
-}
+from enum import Enum
 
-for (k,v) in mydict.items():
-    print(k,v)
+class tracktypes(Enum):
+    video = "video"
+    audio = "audio"
+    image = "image"
+    data = "data"
+    other = "other"
+
+tracktypes('test')

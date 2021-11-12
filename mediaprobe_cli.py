@@ -1,13 +1,10 @@
-import mediaprobe
 import argparse
 from enum import Enum
 
-class tracktypes(Enum):
-    video = "video"
-    audio = "audio"
-    image = "image"
-    data = "data"
-    other = "other"
+import mediaprobe
+from mediaprobe import tracktypes
+
+
 
 def parseargs() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=mediaprobe.__doc__)
@@ -30,7 +27,7 @@ def parseargs() -> argparse.Namespace:
     if len([x for x in args.__dict__.values() if x != False and x != None]) > 2:
         print("Too many arguments. Only use one at a time. However, you may specify more then one input. Examples:\n"
                 "-i /path/to/file.mov -i /path/to/anotherfile.mov -fps\n"
-                "-i /path/to/file.mov -i /path/to/anotherfile.mov -search BitDepth video\n")
+                "-i /path/to/file.mov -i /path/to/anotherfile.mov -search Format_Profile video\n")
         exit(2)
 
     if args.duration:
@@ -38,25 +35,28 @@ def parseargs() -> argparse.Namespace:
 
     if args.search:
         try:
-            tracktypes(args.search[1])
+            args.search[1] = mediaprobe.get_tracktype(args.search[1].lower().capitalize())
         except ValueError:
             print(f"'{args.search[1]}' is not a valid track type")
             exit(2)
 
     return args
 
-def run():
+def prettyprintall(results: dict) -> None:
+    for track in results['tracks']:
+        for k,v in track.items():
+            if k == "@type":
+                print("\n")
+            print(f"{k} = {v}")
+
+def run() -> None:
     args = parseargs()
     for file in args.i:
         if args.all:
             results = mediaprobe.all(file)
             if results:
                 print(results.pop('path'))
-                for track in results['tracks']:
-                    for k,v in track.items():
-                        if k == "@type":
-                            print("\n")
-                        print(f"{k} = {v}")
+                prettyprintall(results)
         if args.fps:
             print(mediaprobe.fps(file))
         if args.duration != None:

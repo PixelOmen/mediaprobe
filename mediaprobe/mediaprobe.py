@@ -8,6 +8,7 @@ import json
 import subprocess as sub
 from pathlib import Path
 from typing import Union
+from enum import Enum
 
 # testfile constant and binary path initialization
 testfile = r"\\10.0.20.175\rei08\DCI\testing\_Testfiles\Logan_8Ch.mov"
@@ -21,6 +22,16 @@ if __name__ == "__main__":
         raise RuntimeError(f"Platform not supported: {sys.platform}")
 else:
     from . import mibin
+
+class tracktypes(Enum):
+    video = "Video"
+    audio = "Audio"
+    image = "Image"
+    data = "Data"
+    other = "Other"
+
+def get_tracktype(trk_type: str) -> tracktypes:
+    return tracktypes(trk_type.lower().capitalize())
 
 def all(filepath: Union[str, Path], raw: bool=False) -> Union[dict, bytes, None]:
     """
@@ -171,27 +182,22 @@ def colorspace(filepath: Union[str, Path]) -> Union[str, None]:
             else:
                 return found
 
-def search(filepath: Union[str, Path], searchterm: str, tracktype: str) -> Union[str, None]:
-    if tracktype.lower() == 'video':
-        tracktype = "Video"
-    elif tracktype.lower() == "audio":
-        tracktype = "Audio"
-    elif tracktype.lower() == "image":
-        tracktype = "Image"
-    elif tracktype.lower() == "data":
-        tracktype = "Data"
-    elif tracktype.lower() == "other":
-        tracktype = "Other"
-    else:
-        raise ValueError(f"Invalid tracktype: {tracktype}")
+def search(filepath: Union[str, Path], searchterm: str, tracktype: Union[str, tracktypes]) -> Union[str, None]:
+    if isinstance(tracktype, str):
+        try:
+            tracktype = get_tracktype(tracktype)
+        except ValueError:
+            print((f"Invalid tracktype: {tracktype}"))
+            return None
+
     output = all(filepath)
     if not output:
         return None
 
     for track in output['tracks']:
-        if track['@type'] == tracktype:
+        if track['@type'] == tracktype.value:
             return track.get(searchterm, None)
 
 
 if __name__ == "__main__":
-    print(all(testfile))
+    print(search(testfile, "Format_Profile", "vIdEo"))
