@@ -18,9 +18,10 @@ def parseargs() -> argparse.Namespace:
                         choices=["frames", "tc"], metavar="<frames|tc>")
     parser.add_argument('-search', action="store", help="Search for a specific field in mediainfo (case sensitive). " +
                         f"Also requires a track type {tuple([x.value for x in tracktypes])}", nargs=2, metavar=("<field>", "<tracktype>"))
-                        
+
+    args = parser.parse_args()
     # args = parser.parse_args(f"-h".split())
-    args = parser.parse_args(f"-i {mediaprobe.testfile} -all".split())
+    # args = parser.parse_args(f"-i {mediaprobe.testfile} -all".split())
     # args = parser.parse_args(f"-i {mediaprobe.testfile} -fps".split())
     # args = parser.parse_args(f"-i {mediaprobe.testfile} -duration tc".split())
     # args = parser.parse_args(f"-i {mediaprobe.testfile} -search Format_Profile video".split())
