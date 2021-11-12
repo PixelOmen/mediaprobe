@@ -42,6 +42,9 @@ def all(filepath, raw=False):
     except json.JSONDecodeError:
         return False
 
+    if fileoutput == None:
+        return False
+
     if raw:
         return rawbytes
 
@@ -67,6 +70,8 @@ def audio(filepath, tracks=False, pids=False):
     If 'pids=True', it returns the pids in the first pos of the tuple instead of the stream order.
     """
     output = all(filepath)
+    if not output:
+        return None
     
     chspertrack = []
     trackorder = []
@@ -91,6 +96,8 @@ def audio(filepath, tracks=False, pids=False):
     
 def fps(filepath):
     output = all(filepath)
+    if not output:
+        return None
 
     for track in output['tracks']:
         if track['@type'] == "Video":
@@ -101,6 +108,8 @@ def streamtypes(filepath):
     Returns a list that contains types for each stream, in order.
     """
     output = all(filepath)
+    if not output:
+        return None
 
     alltypes = []
     order = []
@@ -129,6 +138,8 @@ def duration(filepath, frames=True):
 
 def colorspace(filepath):
     output = all(filepath)
+    if not output:
+        return None
     for track in output['tracks']:
         if track['@type'] == 'Video':
             try:
@@ -156,6 +167,8 @@ def search(filepath, searchterm, tracktype):
     else:
         raise ValueError(f"Invalid tracktype: {tracktype}")
     output = all(filepath)
+    if not output:
+        return None
 
     for track in output['tracks']:
         if track['@type'] == tracktype:
