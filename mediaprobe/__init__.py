@@ -1,5 +1,10 @@
-from pathlib import Path
+"""
+A straightforward wrapper for the Mediainfo CLI tool. It calls mediainfo as a subprocess and parses the returning
+JSON into formatted datatypes relevent to the function called.
+"""
+
 import sys
+from pathlib import Path
 
 if getattr(sys, 'frozen', False):
     here = Path(sys._MEIPASS)
@@ -13,4 +18,4 @@ elif sys.platform == "darwin":
 else:
     raise RuntimeError(f"Platform not supported: {sys.platform}")
 
-from .mediaprobe import *
+from .mediaprobe import * # type: ignore
