@@ -1,4 +1,5 @@
 import argparse
+from pathlib import Path
 
 import mediaprobe
 from mediaprobe import tracktypes
@@ -37,6 +38,11 @@ def parseargs() -> argparse.Namespace:
             args.search[1] = mediaprobe.get_tracktype(args.search[1].lower().capitalize())
         except ValueError:
             print(f"'{args.search[1]}' is not a valid track type")
+            exit(2)
+
+    for file in args.i:
+        if not Path(file).is_file():
+            print(f"File not found: {file}")
             exit(2)
 
     return args

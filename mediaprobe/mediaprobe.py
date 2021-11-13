@@ -59,7 +59,8 @@ def all(filepath: Union[str, Path], raw: bool=False) -> Union[dict, bytes, None]
     rawstr = rawbytes.decode('utf-8')
     try:
         fileoutput = json.loads(rawstr)
-    except json.JSONDecodeError:
+    except json.JSONDecodeError as e:
+        print(e)
         return None
 
     if fileoutput == None:
