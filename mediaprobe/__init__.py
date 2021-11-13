@@ -13,8 +13,10 @@ else:
 
 if sys.platform == "win32":
     mibin = str(here / "bin" / "mediainfo.exe")
+    useshell = False
 elif sys.platform == "darwin":
     mibin = str(here / "bin" / "mediainfo")
+    useshell = True
 else:
     raise RuntimeError(f"Platform not supported: {sys.platform}")
 

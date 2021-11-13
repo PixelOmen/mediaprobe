@@ -1,5 +1,4 @@
 import argparse
-from enum import Enum
 
 import mediaprobe
 from mediaprobe import tracktypes
@@ -55,6 +54,7 @@ def run() -> None:
         if args.all:
             results = mediaprobe.all(file)
             if results:
+                print('\n')
                 print(results.pop('path'))
                 prettyprintall(results)
         if args.fps:

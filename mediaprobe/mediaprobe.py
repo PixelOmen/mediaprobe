@@ -16,14 +16,17 @@ testfile = r"\\10.0.20.175\rei08\DCI\testing\_Testfiles\Logan_8Ch.mov"
 if __name__ == "__main__":
     if sys.platform == "win32":
         mibin = str(Path(__file__).parent / "bin" / "mediainfo.exe")
+        useshell = False
     elif sys.platform == "darwin":
         mibin = str(Path(__file__).parent / "bin" / "mediainfo")
+        useshell = True
     else:
         raise RuntimeError(f"Platform not supported: {sys.platform}")
 else:
-    from . import mibin
+    from . import mibin , useshell
 
 class tracktypes(Enum):
+    general = "General"
     video = "Video"
     audio = "Audio"
     image = "Image"
@@ -48,7 +51,7 @@ def all(filepath: Union[str, Path], raw: bool=False) -> Union[dict, bytes, None]
     if " " in str(filepath):
         filepath = f'"{str(filepath)}"'
 
-    miproc = sub.Popen(f"{str(mibin)} {filepath} --output=JSON", stdin=sub.PIPE, stdout=sub.PIPE, stderr=sub.PIPE)
+    miproc = sub.Popen(f"{str(mibin)} {filepath} --output=JSON", stdin=sub.PIPE, stdout=sub.PIPE, stderr=sub.PIPE, shell=useshell)
     rawbytes = miproc.stdout.read()
     if raw:
         return rawbytes
@@ -76,7 +79,7 @@ def all(filepath: Union[str, Path], raw: bool=False) -> Union[dict, bytes, None]
 
 def audio(filepath: Union[str, Path], tracks: bool=False, pids: bool=False) -> Union[int, list, None]:
     """
-    Returns the total number of audio channels as an int. 
+    Returns the total number of audio channels as an int.
 
     If 'tracks=True', it instead returns a list of tuples.
     The tuples contain the index of the stream and the number of channels in that stream.
@@ -85,7 +88,7 @@ def audio(filepath: Union[str, Path], tracks: bool=False, pids: bool=False) -> U
     output = all(filepath)
     if not output:
         return None
-    
+
     chspertrack = []
     trackorder = []
 
@@ -109,7 +112,7 @@ def audio(filepath: Union[str, Path], tracks: bool=False, pids: bool=False) -> U
         for ch in chspertrack:
             totalchs += int(ch)
         return int(totalchs)
-    
+
 def fps(filepath: Union[str, Path]) -> Union[str, None]:
     output = all(filepath)
     if not output:
@@ -138,7 +141,7 @@ def streamtypes(filepath: Union[str, Path]) -> Union[list, None]:
     tosort = [x for x in zip(alltypes, order)]
     tosort.sort(key= lambda x:x[1])
     sorted = [x[0] for x in tosort]
-    
+
     return sorted
 
 def duration(filepath: Union[str, Path], frames: bool=True) -> Union[str, None]:
