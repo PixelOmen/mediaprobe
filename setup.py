@@ -6,7 +6,7 @@ here = pathlib.Path(__file__).parent.resolve()
 
 setup(
     name='mediaprobe',  # Required
-    version='0.0.1',  # Required
+    version='0.1.1',  # Required
     description='A wrapper for the Mediainfo CLI tool.',  # Optional
     # long_description=long_description,  # Optional
     # long_description_content_type='text/markdown',  # Optional (see note above)
@@ -17,7 +17,7 @@ setup(
         #   3 - Alpha
         #   4 - Beta
         #   5 - Production/Stable
-        'Development Status :: 3 - Alpha',
+        'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
         'Topic :: Software Development :: Media Tools',
         'License :: OSI Approved :: MIT License',

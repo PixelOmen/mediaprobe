@@ -6,12 +6,6 @@ A straightforward wrapper for the Mediainfo CLI tool. It calls mediainfo as a su
 ##
 ## Installation
 
-#### Pip Install
-
-```bash
-pip install mediaprobe
-```
-
 #### DIRECT PYTHON INSTALL
 
 To install checked out source code:
@@ -26,7 +20,7 @@ To install the library in develop mode (similar to `pip install -e`), run:
 python setup.py develop
 ```
 
-
+---
 
 ##
 ## Usage
@@ -47,9 +41,13 @@ allinfo = mediaprobe.all('/path/to/file.mov')
 # returns dict with full output of mediainfo
 allinfo['tracks'][1]['OverallBitRate']
 # pull any other desired info out of track
+
+mediaprobe.search('/path/to/file.mov', "Format_Profile", "video")
+# Search for specific fields in the mediainfo output. This example would return '422 HQ' from a ProRes422HQ
 ```
 ##### More utility functions will eventually be added.
 
+---
 ##
 ## Contributing
 Pull requests are welcome. 
