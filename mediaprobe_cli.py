@@ -5,7 +5,6 @@ import mediaprobe
 from mediaprobe import tracktypes
 
 
-
 def parseargs() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=mediaprobe.__doc__)
     parser.add_argument('-i', action="append", help="Input file path", required=True, metavar="<filepath>")
@@ -17,6 +16,7 @@ def parseargs() -> argparse.Namespace:
                         f"Also requires a track type {tuple([x.value for x in tracktypes])}", nargs=2, metavar=("<field>", "<tracktype>"))
 
     args = parser.parse_args()
+    # ------ Debug
     # args = parser.parse_args(f"-h".split())
     # args = parser.parse_args(f"-i {mediaprobe.testfile} -all".split())
     # args = parser.parse_args(f"-i {mediaprobe.testfile} -fps".split())
@@ -35,7 +35,7 @@ def parseargs() -> argparse.Namespace:
 
     if args.search:
         try:
-            args.search[1] = mediaprobe.get_tracktype(args.search[1].lower().capitalize())
+            args.search[1] = mediaprobe.get_tracktype(args.search[1])
         except ValueError:
             print(f"'{args.search[1]}' is not a valid track type")
             exit(2)
@@ -47,8 +47,12 @@ def parseargs() -> argparse.Namespace:
 
     return args
 
-def prettyprintall(results: dict) -> None:
-    for track in results['tracks']:
+def prettyprintall(fulloutput: dict) -> None:
+    '''
+    Cleans up the full JSON output from mediainfo
+    and prints it line by line
+    '''
+    for track in fulloutput['tracks']:
         for k,v in track.items():
             if k == "@type":
                 print("\n")
@@ -58,11 +62,11 @@ def run() -> None:
     args = parseargs()
     for file in args.i:
         if args.all:
-            results = mediaprobe.all(file)
-            if results:
+            fulloutput = mediaprobe.all(file)
+            if fulloutput:
                 print('\n')
-                print(results.pop('path'))
-                prettyprintall(results)
+                print(fulloutput.pop('path'))
+                prettyprintall(fulloutput)
         if args.fps:
             print(mediaprobe.fps(file))
         if args.duration != None:
