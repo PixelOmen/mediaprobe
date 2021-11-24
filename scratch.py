@@ -1,10 +1,6 @@
-from enum import Enum
+import mediaprobe
 
-class tracktypes(Enum):
-    video = "video"
-    audio = "audio"
-    image = "image"
-    data = "data"
-    other = "other"
+mediaprobe.testfile
 
-tracktypes('test')
+
+print(mediaprobe.audio(mediaprobe.testfile, tracks=True))

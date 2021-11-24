@@ -107,7 +107,7 @@ def audio(filepath: Union[str, Path], tracks: bool=False, pids: bool=False) -> U
         return None
 
     if tracks:
-        return list([x for x in zip(trackorder, chspertrack)])
+        return list(zip(trackorder, chspertrack))
     else:
         totalchs = 0
         for ch in chspertrack:
