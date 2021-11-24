@@ -77,6 +77,16 @@ def all(filepath: Union[str, Path], raw: bool=False) -> Union[dict, bytes]:
 
     return dict(fileoutput)
 
+def printall(srcfile: Union[str, Path]) -> None:
+    fulloutput = all(srcfile)
+    print('\n')
+    print(fulloutput.pop('path'))
+    for track in fulloutput['tracks']:
+        for k,v in track.items():
+            if k == "@type":
+                print("\n")
+            print(f"{k} = {v}")
+
 def audio(filepath: Union[str, Path], tracks: bool=False, pids: bool=False) -> Union[int, list, None]:
     """
     Returns the total number of audio channels as an int.
