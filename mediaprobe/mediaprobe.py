@@ -33,10 +33,10 @@ class Tracktypes(Enum):
     data = "Data"
     other = "Other"
 
-def get_tracktype(trk_type: str) -> Tracktypes:
+def get_tracktype_enum(trk_type: str) -> Tracktypes:
     return Tracktypes(trk_type.lower().capitalize())
 
-def all(filepath: Union[str, Path], raw: bool=False) -> Union[dict, bytes, None]:
+def all(filepath: Union[str, Path], raw: bool=False) -> Union[dict, bytes]:
     """
     Returns a dictionary with 2 keys: 'path' and 'tracks'. 'path' is the original path
     that was passed into this function. 'tracks' contains a list of tracks where each
@@ -51,7 +51,7 @@ def all(filepath: Union[str, Path], raw: bool=False) -> Union[dict, bytes, None]
     if " " in str(filepath):
         filepath = f'"{str(filepath)}"'
 
-    miproc = sub.Popen(f"{str(mibin)} {filepath} --output=JSON", stdin=sub.PIPE, stdout=sub.PIPE, stderr=sub.PIPE, shell=useshell)
+    miproc = sub.Popen(f"{str(mibin)} {str(filepath)} --output=JSON", stdin=sub.PIPE, stdout=sub.PIPE, stderr=sub.PIPE, shell=useshell)
     rawbytes = miproc.stdout.read()
     if raw:
         return rawbytes
@@ -60,11 +60,10 @@ def all(filepath: Union[str, Path], raw: bool=False) -> Union[dict, bytes, None]
     try:
         fileoutput = json.loads(rawstr)
     except json.JSONDecodeError as e:
-        print(e)
-        return None
+        raise json.JSONDecodeError(f"Unable to decode JSON from MediaInfo. JSON decode error: {e}")
 
     if fileoutput == None:
-        return None
+        raise BufferError("Didn't read anything from MediaInfo")
 
     fileoutput = fileoutput['media']
 
@@ -87,8 +86,6 @@ def audio(filepath: Union[str, Path], tracks: bool=False, pids: bool=False) -> U
     If 'pids=True', it returns the pids in the first pos of the tuple instead of the stream order.
     """
     output = all(filepath)
-    if not output:
-        return None
 
     chspertrack = []
     trackorder = []
@@ -116,9 +113,6 @@ def audio(filepath: Union[str, Path], tracks: bool=False, pids: bool=False) -> U
 
 def fps(filepath: Union[str, Path]) -> Union[str, None]:
     output = all(filepath)
-    if not output:
-        return None
-
     for track in output['tracks']:
         if track['@type'] == "Video":
             return track.get('FrameRate', None)
@@ -128,8 +122,6 @@ def streamtypes(filepath: Union[str, Path]) -> Union[list, None]:
     Returns a list that contains types for each stream, in order.
     """
     output = all(filepath)
-    if not output:
-        return None
 
     alltypes = []
     order = []
@@ -145,25 +137,23 @@ def streamtypes(filepath: Union[str, Path]) -> Union[list, None]:
 
     return sorted
 
-def duration(filepath: Union[str, Path], frames: bool=True) -> Union[str, None]:
+def framecount(filepath: Union[str, Path]) -> Union[str, None]:
     """
-    Returns the total duration in frames. If frames=False, returns the
-    starting TC instead (if available).
+    Returns the total duration in frames.
     """
     output = all(filepath)
-    if not output:
-        return None
+    for track in output['tracks']:
+        if track['@type'] == "Video":
+            return track.get('FrameCount', None)
 
-    if frames:
-        for track in output['tracks']:
-            if track['@type'] == "Video":
-                return track.get('FrameCount', None)
-    else:
-        for track in output['tracks']:
-            if track['@type'] == "Other":
-                return track.get('TimeCode_FirstFrame', None)
-
-    return None
+def start_tc(filepath: Union[str, Path]) -> Union[str, None]:
+    """
+    Returns the starting TC listed in the "Other" track, if available.
+    """
+    output = all(filepath)
+    for track in output['tracks']:
+        if track['@type'] == "Other":
+            return track.get('TimeCode_FirstFrame', None)
 
 def colorspace(filepath: Union[str, Path]) -> Union[str, None]:
     output = all(filepath)
@@ -171,32 +161,20 @@ def colorspace(filepath: Union[str, Path]) -> Union[str, None]:
         return None
     for track in output['tracks']:
         if track['@type'] == 'Video':
-            try:
-                found = track['ColorSpace']
-            except KeyError:
-                return None
-            else:
-                return found
+            return track.get('ColorSpace', None)
     for track in output['tracks']:
         if track['@type'] == 'Image':
-            try:
-                found = track['ColorSpace']
-            except KeyError:
-                return None
-            else:
-                return found
+            return track.get('ColorSpace', None)
 
 def search(filepath: Union[str, Path], searchterm: str, tracktype: Union[str, Tracktypes]) -> Union[str, None]:
     if isinstance(tracktype, str):
         try:
-            tracktype = get_tracktype(tracktype)
+            tracktype = get_tracktype_enum(tracktype)
         except ValueError:
             print((f"Invalid tracktype: {tracktype}"))
             return None
 
     output = all(filepath)
-    if not output:
-        return None
 
     for track in output['tracks']:
         if track['@type'] == tracktype.value:

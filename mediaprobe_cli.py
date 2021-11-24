@@ -35,7 +35,7 @@ def parseargs() -> argparse.Namespace:
 
     if args.search:
         try:
-            args.search[1] = mediaprobe.get_tracktype(args.search[1])
+            args.search[1] = mediaprobe.get_tracktype_enum(args.search[1])
         except ValueError:
             print(f"'{args.search[1]}' is not a valid track type")
             exit(2)
