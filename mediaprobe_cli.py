@@ -2,7 +2,7 @@ import argparse
 from pathlib import Path
 
 import mediaprobe
-from mediaprobe import tracktypes
+from mediaprobe import Tracktypes
 
 
 def parseargs() -> argparse.Namespace:
@@ -13,7 +13,7 @@ def parseargs() -> argparse.Namespace:
     parser.add_argument('-duration', action='store', help="Returns the duration in frames or tc (if available)",
                         choices=["frames", "tc"], metavar="<frames|tc>")
     parser.add_argument('-search', action="store", help="Search for a specific field in mediainfo (case sensitive). " +
-                        f"Also requires a track type {tuple([x.value for x in tracktypes])}", nargs=2, metavar=("<field>", "<tracktype>"))
+                        f"Also requires a track type {tuple([x.value for x in Tracktypes])}", nargs=2, metavar=("<field>", "<tracktype>"))
 
     args = parser.parse_args()
     # ------ Debug
