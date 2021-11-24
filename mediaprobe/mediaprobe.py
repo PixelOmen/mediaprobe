@@ -25,7 +25,7 @@ if __name__ == "__main__":
 else:
     from . import mibin , useshell
 
-class tracktypes(Enum):
+class Tracktypes(Enum):
     general = "General"
     video = "Video"
     audio = "Audio"
@@ -33,8 +33,8 @@ class tracktypes(Enum):
     data = "Data"
     other = "Other"
 
-def get_tracktype(trk_type: str) -> tracktypes:
-    return tracktypes(trk_type.lower().capitalize())
+def get_tracktype(trk_type: str) -> Tracktypes:
+    return Tracktypes(trk_type.lower().capitalize())
 
 def all(filepath: Union[str, Path], raw: bool=False) -> Union[dict, bytes, None]:
     """
@@ -186,7 +186,7 @@ def colorspace(filepath: Union[str, Path]) -> Union[str, None]:
             else:
                 return found
 
-def search(filepath: Union[str, Path], searchterm: str, tracktype: Union[str, tracktypes]) -> Union[str, None]:
+def search(filepath: Union[str, Path], searchterm: str, tracktype: Union[str, Tracktypes]) -> Union[str, None]:
     if isinstance(tracktype, str):
         try:
             tracktype = get_tracktype(tracktype)
