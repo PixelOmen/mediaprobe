@@ -122,10 +122,7 @@ class MediaProbe:
         if tracks:
             return list(zip(trackorder, chspertrack))
         else:
-            totalchs = 0
-            for ch in chspertrack:
-                totalchs += int(ch)
-            return int(totalchs)
+            return sum([int(x) for x in chspertrack])
 
     def fps(self) -> Union[str, None]:
         for track in self.fulljson['tracks']:
