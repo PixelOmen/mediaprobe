@@ -1,5 +1,5 @@
 """
-A straightforward wrapper for the Mediainfo CLI tool. It calls mediainfo as a subprocess and parses the returning
+A straightforward wrapper for the Mediainfo CLI tool. It calls MediaInfo as a subprocess and parses the returning
 JSON into formatted datatypes relevent to the function called.
 """
 
@@ -11,7 +11,7 @@ from typing import Union
 from enum import Enum
 
 # testfile constant and binary path initialization
-testfile = r"\\10.0.20.175\rei08\DCI\testing\_Testfiles\Logan_8Ch.mov"
+TESTFILE = r"\\10.0.20.175\rei08\DCI\testing\_Testfiles\Logan_8Ch.mov"
 
 if __name__ == "__main__":
     if sys.platform == "win32":
@@ -36,160 +36,167 @@ class Tracktypes(Enum):
 def get_tracktype_enum(trk_type: str) -> Tracktypes:
     return Tracktypes(trk_type.lower().capitalize())
 
-def all(filepath: Union[str, Path], raw: bool=False) -> Union[dict, bytes]:
-    """
-    Returns a dictionary with 2 keys: 'path' and 'tracks'. 'path' is the original path
-    that was passed into this function. 'tracks' contains a list of tracks where each
-    track is a dictionary that contains properties for that track. Returns None if it
-    is unable to get/parse the JSON output.
+class MediaProbe:
+    def __init__(self, filepath: Union[str, Path]) -> None:
+        self.filepath = filepath
+        self.fulljson = MediaProbe.get_json(filepath)
 
-    Setting 'raw' to 'True' will return the unchanged JSON output(as bytes) straight from the Mediainfo CLI.
-    """
-    if not Path(filepath).is_file():
-        raise FileNotFoundError(f"'{filepath}' is not a path to a file or does not exist")
+    @staticmethod
+    def get_json(filepath: Union[str, Path], raw: bool=False) -> Union[dict, bytes]:
+        """
+        This is a 'pure' static method. It does alter any state or variables anywhere.
+        It communicates with the MediaInfo binary directly and returns the results.
 
-    if " " in str(filepath):
-        filepath = f'"{str(filepath)}"'
+        It returns a dictionary with 2 keys: 'path' and 'tracks'. 'path' is the original path
+        that was passed into this static method. 'tracks' contains a list of tracks where each
+        track is a dictionary that contains properties for that track.
 
-    miproc = sub.Popen(f"{str(mibin)} {str(filepath)} --output=JSON", stdin=sub.PIPE, stdout=sub.PIPE, stderr=sub.PIPE, shell=useshell)
-    rawbytes = miproc.stdout.read()
-    if raw:
-        return rawbytes
+        If raw=True it will return the unchanged JSON output(as bytes) straight from the Mediainfo CLI.
+        """
+        if not Path(filepath).is_file():
+            raise FileNotFoundError(f"'{filepath}' is not a path to a file or does not exist")
 
-    rawstr = rawbytes.decode('utf-8')
-    try:
-        fileoutput = json.loads(rawstr)
-    except json.JSONDecodeError as e:
-        raise json.JSONDecodeError(f"Unable to decode JSON from MediaInfo. JSON decode error: {e}")
+        if " " in str(filepath):
+            filepath = f'"{str(filepath)}"'
 
-    if fileoutput == None:
-        raise BufferError("Didn't read anything from MediaInfo")
+        miproc = sub.Popen(f"{str(mibin)} {str(filepath)} --output=JSON", stdin=sub.PIPE, stdout=sub.PIPE, stderr=sub.PIPE, shell=useshell)
+        rawbytes = miproc.stdout.read()
+        if raw:
+            return rawbytes
 
-    fileoutput = fileoutput['media']
-
-    path = fileoutput['@ref']
-    del fileoutput['@ref']
-    fileoutput['path'] = path
-
-    tracks = fileoutput['track']
-    del fileoutput['track']
-    fileoutput['tracks'] = tracks
-
-    return dict(fileoutput)
-
-def printall(srcfile: Union[str, Path]) -> None:
-    fulloutput = all(srcfile)
-    print('\n')
-    print(fulloutput.pop('path'))
-    for track in fulloutput['tracks']:
-        for k,v in track.items():
-            if k == "@type":
-                print("\n")
-            print(f"{k} = {v}")
-
-def audio(filepath: Union[str, Path], tracks: bool=False, pids: bool=False) -> Union[int, list, None]:
-    """
-    Returns the total number of audio channels as an int.
-
-    If 'tracks=True', it instead returns a list of tuples.
-    The tuples contain the index of the stream and the number of channels in that stream.
-    If 'pids=True', it returns the pids in the first pos of the tuple instead of the stream order.
-    """
-    output = all(filepath)
-
-    chspertrack = []
-    trackorder = []
-
-    if pids:
-        datafield = 'ID'
-    else:
-        datafield = 'StreamOrder'
-
-    for track in output['tracks']:
-        if track["@type"] == 'Audio':
-            chspertrack.append(track['Channels'])
-            trackorder.append(track[datafield])
-
-    if not chspertrack and not trackorder:
-        return None
-
-    if tracks:
-        return list(zip(trackorder, chspertrack))
-    else:
-        totalchs = 0
-        for ch in chspertrack:
-            totalchs += int(ch)
-        return int(totalchs)
-
-def fps(filepath: Union[str, Path]) -> Union[str, None]:
-    output = all(filepath)
-    for track in output['tracks']:
-        if track['@type'] == "Video":
-            return track.get('FrameRate', None)
-
-def streamtypes(filepath: Union[str, Path]) -> Union[list, None]:
-    """
-    Returns a list that contains types for each stream, in order.
-    """
-    output = all(filepath)
-
-    alltypes = []
-    order = []
-
-    for track in output['tracks']:
-        if track['@type'] != 'General':
-            alltypes.append(track['@type'])
-            order.append(track['StreamOrder'])
-
-    tosort = [x for x in zip(alltypes, order)]
-    tosort.sort(key= lambda x:x[1])
-    sorted = [x[0] for x in tosort]
-
-    return sorted
-
-def framecount(filepath: Union[str, Path]) -> Union[str, None]:
-    """
-    Returns the total duration in frames.
-    """
-    output = all(filepath)
-    for track in output['tracks']:
-        if track['@type'] == "Video":
-            return track.get('FrameCount', None)
-
-def start_tc(filepath: Union[str, Path]) -> Union[str, None]:
-    """
-    Returns the starting TC listed in the "Other" track, if available.
-    """
-    output = all(filepath)
-    for track in output['tracks']:
-        if track['@type'] == "Other":
-            return track.get('TimeCode_FirstFrame', None)
-
-def colorspace(filepath: Union[str, Path]) -> Union[str, None]:
-    output = all(filepath)
-    if not output:
-        return None
-    for track in output['tracks']:
-        if track['@type'] == 'Video':
-            return track.get('ColorSpace', None)
-    for track in output['tracks']:
-        if track['@type'] == 'Image':
-            return track.get('ColorSpace', None)
-
-def search(filepath: Union[str, Path], searchterm: str, tracktype: Union[str, Tracktypes]) -> Union[str, None]:
-    if isinstance(tracktype, str):
+        rawstr = rawbytes.decode('utf-8')
         try:
-            tracktype = get_tracktype_enum(tracktype)
-        except ValueError:
-            print((f"Invalid tracktype: {tracktype}"))
+            fileoutput = json.loads(rawstr)
+        except json.JSONDecodeError as e:
+            raise json.JSONDecodeError(f"Unable to decode JSON from MediaInfo. JSON decode error: {e}")
+
+        if fileoutput == None:
+            raise BufferError("Didn't read anything from MediaInfo")
+
+        fileoutput = fileoutput['media']
+
+        path = fileoutput['@ref']
+        del fileoutput['@ref']
+        fileoutput['path'] = path
+
+        tracks = fileoutput['track']
+        del fileoutput['track']
+        fileoutput['tracks'] = tracks
+
+        return dict(fileoutput)
+
+    def printall(self) -> None:
+        ''' "Pretty" print the full contents of MediaInfo's JSON output'''
+        print('\n')
+        print(self.fulljson['path'])
+        for track in self.fulljson['tracks']:
+            for k,v in track.items():
+                if k == "@type":
+                    print("\n")
+                print(f"{k} = {v}")
+
+    def audio(self, tracks: bool=False, pids: bool=False) -> Union[int, list, None]:
+        """
+        Returns the total number of audio channels as an int.
+
+        If 'tracks=True', it instead returns a list of tuples.
+        The tuples contain the index of the stream and the number of channels in that stream.
+        If 'pids=True', it returns the pids in the first pos of the tuple instead of the stream order.
+        """
+        chspertrack = []
+        trackorder = []
+
+        if pids:
+            datafield = 'ID'
+        else:
+            datafield = 'StreamOrder'
+
+        for track in self.fulljson['tracks']:
+            if track["@type"] == 'Audio':
+                chspertrack.append(track['Channels'])
+                trackorder.append(track[datafield])
+
+        if not chspertrack and not trackorder:
             return None
 
-    output = all(filepath)
+        if tracks:
+            return list(zip(trackorder, chspertrack))
+        else:
+            totalchs = 0
+            for ch in chspertrack:
+                totalchs += int(ch)
+            return int(totalchs)
 
-    for track in output['tracks']:
-        if track['@type'] == tracktype.value:
-            return track.get(searchterm, None)
+    def fps(self) -> Union[str, None]:
+        for track in self.fulljson['tracks']:
+            if track['@type'] == "Video":
+                return track.get('FrameRate', None)
+
+    def streamtypes(self) -> Union[list, None]:
+        """
+        Returns a list that contains types for each stream, in order.
+        """
+        alltypes = []
+        order = []
+
+        for track in self.fulljson['tracks']:
+            if track['@type'] != 'General':
+                alltypes.append(track['@type'])
+                order.append(track['StreamOrder'])
+
+        tosort = [x for x in zip(alltypes, order)]
+        tosort.sort(key= lambda x:x[1])
+        sorted = [x[0] for x in tosort]
+
+        return sorted
+
+    def framecount(self) -> Union[str, None]:
+        """
+        Returns the total number of frames.
+        """
+        for track in self.fulljson['tracks']:
+            if track['@type'] == "Video":
+                return track.get('FrameCount', None)
+
+    def duration(self) -> Union[str, None]:
+        """
+        Returns the total duration in seconds.
+        """
+        for track in self.fulljson['tracks']:
+            if track['@type'] == "Video":
+                return track.get('Duration', None)
+
+    def start_tc(self) -> Union[str, None]:
+        """
+        Returns the starting TC listed in the "Other" track, if available.
+        """
+        for track in self.fulljson['tracks']:
+            if track['@type'] == "Other":
+                return track.get('TimeCode_FirstFrame', None)
+
+    def colorspace(self) -> Union[str, None]:
+        if not self.fulljson:
+            return None
+        for track in self.fulljson['tracks']:
+            if track['@type'] == 'Video':
+                return track.get('ColorSpace', None)
+        for track in self.fulljson['tracks']:
+            if track['@type'] == 'Image':
+                return track.get('ColorSpace', None)
+
+    def search(self, searchterm: str, tracktype: Union[str, Tracktypes]) -> Union[str, None]:
+        if isinstance(tracktype, str):
+            try:
+                tracktype = get_tracktype_enum(tracktype)
+            except ValueError:
+                print((f"Invalid tracktype: {tracktype}"))
+                return None
+
+        for track in self.fulljson['tracks']:
+            if track['@type'] == tracktype.value:
+                return track.get(searchterm, None)
 
 
 if __name__ == "__main__":
-    print(search(testfile, "Format_Profile", "vIdEo"))
+    probe = MediaProbe(TESTFILE)
+    print(probe.search("Format_Profile", "vIdEo"))

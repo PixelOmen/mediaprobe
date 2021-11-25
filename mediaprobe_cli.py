@@ -2,7 +2,7 @@ import argparse
 from pathlib import Path
 
 import mediaprobe
-from mediaprobe import Tracktypes
+from mediaprobe import MediaProbe, Tracktypes, TESTFILE
 
 
 def parseargs() -> argparse.Namespace:
@@ -17,10 +17,10 @@ def parseargs() -> argparse.Namespace:
     args = parser.parse_args()
     # ------ Debug
     # args = parser.parse_args(f"-h".split())
-    # args = parser.parse_args(f"-i {mediaprobe.testfile} -all".split())
-    # args = parser.parse_args(f"-i {mediaprobe.testfile} -fps".split())
-    # args = parser.parse_args(f"-i {mediaprobe.testfile} -frames tc".split())
-    # args = parser.parse_args(f"-i {mediaprobe.testfile} -search Format_Profile video".split())
+    # args = parser.parse_args(f"-i {TESTFILE} -all".split())
+    # args = parser.parse_args(f"-i {TESTFILE} -fps".split())
+    # args = parser.parse_args(f"-i {TESTFILE} -frames tc".split())
+    # args = parser.parse_args(f"-i {TESTFILE} -search Format_Profile video".split())
     
 
     if len([x for x in args.__dict__.values() if x != False and x != None]) > 2:
@@ -57,18 +57,19 @@ def prettyprintall(fulloutput: dict) -> None:
 def run() -> None:
     args = parseargs()
     for file in args.i:
+        probe = MediaProbe(file)
         if args.all:
-            fulloutput = mediaprobe.all(file)
+            fulloutput = probe.all(file)
             if fulloutput:
                 print('\n')
                 print(fulloutput.pop('path'))
                 prettyprintall(fulloutput)
         if args.fps:
-            print(mediaprobe.fps(file))
+            print(probe.fps(file))
         if args.framecount:
-            print(mediaprobe.framecount(file))
+            print(probe.framecount(file))
         if args.search:
-            print(mediaprobe.search(file, args.search[0], args.search[1]))
+            print(probe.search(file, args.search[0], args.search[1]))
 
 
 if __name__ == "__main__":

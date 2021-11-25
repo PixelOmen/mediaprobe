@@ -1,7 +1,9 @@
-import mediaprobe
+from mediaprobe import MediaProbe, TESTFILE
 
-testfile = mediaprobe.testfile
 longtest = r"\\10.0.20.175\rei08\_Andy\DisneyFX\KingOfTheHill_s01\deliverable\KingOfTheHill_1ABE01_XXKH01001.mxf"
 
+probe = MediaProbe(TESTFILE)
 
-print(mediaprobe.printall(longtest))
+print(probe.fps())
+print(probe.audio())
+print(probe.colorspace())
