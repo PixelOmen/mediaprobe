@@ -95,7 +95,7 @@ class MediaProbe:
                     print("\n")
                 print(f"{k} = {v}")
 
-    def audio(self, tracks: bool=False, pids: bool=False) -> Union[int, list, None]:
+    def audio(self, tracks: bool=False, pids: bool=False) -> Union[int, list]:
         """
         Returns the total number of audio channels as an int.
 
@@ -117,7 +117,7 @@ class MediaProbe:
                 trackorder.append(track[datafield])
 
         if not chspertrack and not trackorder:
-            return None
+            return [] if tracks else 0
 
         if tracks:
             return list(zip(trackorder, chspertrack))
