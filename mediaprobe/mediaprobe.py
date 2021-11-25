@@ -7,7 +7,7 @@ import sys
 import json
 import subprocess as sub
 from pathlib import Path
-from typing import Union
+from typing import Union, Tuple
 from enum import Enum
 
 # testfile constant and binary path initialization
@@ -155,7 +155,7 @@ class MediaProbe:
         Returns the total number of frames.
         """
         for track in self.fulljson['tracks']:
-            if track['@type'] == "Video":
+            if track['@type'] == "General":
                 return track.get('FrameCount', None)
 
     def duration(self) -> Union[str, None]:
@@ -163,7 +163,7 @@ class MediaProbe:
         Returns the total duration in seconds.
         """
         for track in self.fulljson['tracks']:
-            if track['@type'] == "Video":
+            if track['@type'] == "General":
                 return track.get('Duration', None)
 
     def start_tc(self) -> Union[str, None]:
@@ -175,14 +175,26 @@ class MediaProbe:
                 return track.get('TimeCode_FirstFrame', None)
 
     def colorspace(self) -> Union[str, None]:
-        if not self.fulljson:
-            return None
         for track in self.fulljson['tracks']:
             if track['@type'] == 'Video':
                 return track.get('ColorSpace', None)
         for track in self.fulljson['tracks']:
             if track['@type'] == 'Image':
                 return track.get('ColorSpace', None)
+
+    def resolution(self, asint: bool=False) -> Tuple[str, str]:
+        width, height = None, None
+        for track in self.fulljson['tracks']:
+            if track['@type'] == 'Video':
+                width = track.get('Width', None)
+                height = track.get('Height', None)
+        for track in self.fulljson['tracks']:
+            if track['@type'] == 'Image':
+                width = track.get('Width', None)
+                height = track.get('Height', None)
+        if asint:
+            return int(width), int(height)
+        return width, height
 
     def search(self, searchterm: str, tracktype: Union[str, Tracktypes]) -> Union[str, None]:
         if isinstance(tracktype, str):

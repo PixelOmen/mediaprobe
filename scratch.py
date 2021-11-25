@@ -4,6 +4,4 @@ longtest = r"\\10.0.20.175\rei08\_Andy\DisneyFX\KingOfTheHill_s01\deliverable\Ki
 
 probe = MediaProbe(TESTFILE)
 
-print(probe.fps())
-print(probe.audio())
-print(probe.colorspace())
+print(probe.resolution(asint=True))
