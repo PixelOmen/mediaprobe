@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import List, Tuple, overload, Literal
+from typing import overload, Literal
 from dataclasses import dataclass
 from mediaprobe import MediaProbe
 
@@ -8,18 +8,18 @@ class MediaAttributes:
 	filepath: Path
 	probe: MediaProbe
 	streamcount: int
-	streamtypes: List[str]
-	videolocations: List[int]
-	audiolocations: List[Tuple[int,...]]
+	streamtypes: list[str]
+	videolocations: list[int]
+	audiolocations: list[tuple[int,...]]
 	audiocount: int
 	videocount: int
 	fps: float | None=None
-	resolution: Tuple[int,int] | None=None
+	resolution: tuple[int,int] | None=None
 	framecount: int | None=None
 	start_tc: str | None=None
 
 
-	def __init__(self, srcfile: str|Path):
+	def __init__(self, srcfile: str|Path, raise_if_none: bool=True):
 		self.filepath = Path(srcfile)
 		self.probe = MediaProbe(self.filepath)
 		self.fps = None if self.probe.fps() == None else float(str(self.probe.fps()))
@@ -32,6 +32,18 @@ class MediaAttributes:
 		self.audiocount = self.probe.audio()
 		self.audiolocations = self.probe.audio(streams=True)
 		self.start_tc = self.probe.start_tc()
+		if raise_if_none:
+			self.raise_if_none()
+
+	def raise_if_none(self) -> None:
+		nonetypes = {
+			"framerate": self.fps,
+			"resolution": self.resolution,
+			"framecount": self.framecount,
+		}
+		for name, attr in nonetypes.items():
+			if attr is None:
+				raise AttributeError(f"Unable to get {name} for {self.filepath}")
 
 	@overload
 	def find_audiostream(self, ch: int, ffcmd: Literal[False]=False) -> int|None:...
