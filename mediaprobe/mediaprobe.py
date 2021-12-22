@@ -188,7 +188,9 @@ class MediaProbe:
                 alltypes.append(track['@type'])
                 streamorder = track.get('StreamOrder', None)
                 if not streamorder:
-                    raise TypeError("MediaInfo is unable to get the stream order.")
+                    streamorder = track.get("@typeorder", None)
+                    if not streamorder:
+                        raise TypeError("MediaInfo is unable to get the stream order.")
                 order.append(streamorder)
         
         if not alltypes:
