@@ -1,51 +1,116 @@
 # Mediaprobe
 
-A straightforward wrapper for the Mediainfo CLI tool. It calls mediainfo as a subprocess and parses the returning JSON into formatted datatypes relevent to the function called.
+A straightforward wrapper for the Mediainfo CLI tool. It calls MediaInfo as a subprocess and parses the returning
+JSON into formatted datatypes relevent to the information requested.
 
----
-##
+The package provides two main classes: MediaProbe and MediaAttributes.
+___
+
+### MediaProbe and MediaAttributes
+MediaProbe is compatible with the older python (≤3.9) type hinting syntax and provides information via the instantiated object's method calls, e.g. `testobject.fps()`.
+
+MediaAttributes uses the newer type hinting syntax (≥3.10) and provides a `dataclass` with a more struct-like syntax for accessing the media's information via attributes, e.g. `testobject.fps`.
+
+MediaAttributes also has a special method that can either return the stream number where an audio channel is located, or construct the FFMPEG command needed to extract that specific audio channel. See usage below for more information.
+
+___
+
 ## Installation
 
-#### DIRECT PYTHON INSTALL
-
-To install checked out source code:
+### Direct Python Install:
 
 ```bash
 python setup.py install
 ```
 
-To install the library in develop mode (similar to `pip install -e`), run:
+---
 
-```bash
-python setup.py develop
+## MediaProbe Usage
+
+```python
+from mediaprobe import MediaProbe
+
+testfile = '/path/to/file.mov'
+mediainfobin = '/path/to/mediainfo.exe'
+
+testprobe = MediaProbe(testfile, mediainfobin)
+
+# returns the file's framerate as a string
+testprobe.fps()
+# 23.976
+
+# returns total number of audio channels as int
+testprobe.audio()
+# 6
+
+# returns list of tuples with the stream order and channels per stream. Mono streams example:
+testprobe.audio(streams=True)
+# [(1, 1), (2, 1), (3, 1), (4, 1), (5, 1), (6, 1)]
+
+# returns a list of track types in order
+testprobe.streamtypes()
+# ["Video", "Audio", "Audio", "Data"]
+
+# "Pretty" prints the full output from MediaInfo
+testprobe.printall()
+
+# Access the full json output as a dict
+testprobe.fulljson['tracks'][0]['OverallBitRate']
+# 181929314
+
+# Search for specific fields in the mediainfo output. This example would return '422 HQ' from a ProRes422HQ
+testprobe.search("Format_Profile", "video")
+# 422 HQ
 ```
 
 ---
-
-##
-## Usage
+## MediaAttributes Usage
 
 ```python
-import mediaprobe
+from mediaprobe import MediaAttributes
 
-mediaprobe.fps('/path/to/file.mov')
-# returns the file's framerate as a string
-mediaprobe.audio('/path/to/file.mov')
-# returns total number of audio as int
-mediaprobe.audio('/path/to/file.mov', tracks=True) 
-# returns list of tuples with total channels per stream and stream order
-mediaprobe.streamtypes('/path/to/file.mov')
-# returns a list of types e.g. ["Video", "Audio", "Audio", "Data"] in order
+testfile = '/path/to/file.mov'
+mediainfobin = '/path/to/mediainfo.exe'
 
-allinfo = mediaprobe.all('/path/to/file.mov')
-# returns dict with full output of mediainfo
-allinfo['tracks'][1]['OverallBitRate']
-# pull any other desired info out of track
+testprobe = MediaAttributes(testfile, mediainfobin)
 
-mediaprobe.search('/path/to/file.mov', "Format_Profile", "video")
-# Search for specific fields in the mediainfo output. This example would return '422 HQ' from a ProRes422HQ
+# returns the file's framerate as a float
+testprobe.fps
+# 23.976
+
+# returns total number of audio channels as int
+testprobe.audiocount
+# 6
+
+# returns list of tuples with the stream order and channels per stream. Mono streams example:
+testprobe.audiolocations
+# [(1, 1), (2, 1), (3, 1), (4, 1), (5, 1), (6, 1)]
+
+# returns a list of track types in order
+testprobe.streamtypes
+# ["Video", "Audio", "Audio", "Data"]
+
+# MediaAttribute objects still contain access to the underlying MediaProbe object:
+testprobe.probe.printall()
+testprobe.probe.fulljson['tracks'][0]['OverallBitRate']
+# 181929314
+testprobe.probe.search("Format_Profile", "video")
+# 422 HQ
+
+# Get the stream where audio channel is located (mono stream example)
+testprobe.find_audiostream(5)
+# 5
+
+# Get the stream where audio channel is located (5.1 + Stereo example)
+testprobe.find_audiostream(5)
+# 1 (stream 0 being the video stream)
+
+# Get the FFMPEG mapping command to extract the audio (5.1 + Stereo example)
+testprobe.find_audiostream(5, ffcmd=True)
+# -map_channel 0.2.4
+testprobe.find_audiostream(7, ffcmd=True)
+# -filter_complex "[0:3]channelsplit=channel_layout=stereo:channels=FL[left]" -map "[left]"
 ```
-##### More utility functions will eventually be added.
 
 ---
 ##

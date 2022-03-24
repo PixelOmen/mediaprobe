@@ -1,7 +1,8 @@
 from pathlib import Path
-from typing import overload, Literal
 from dataclasses import dataclass
-from mediaprobe import MediaProbe
+from typing import overload, Literal
+
+from .main import MediaProbe
 
 @dataclass(slots=True)
 class MediaAttributes:
@@ -19,9 +20,9 @@ class MediaAttributes:
 	start_tc: str | None=None
 
 
-	def __init__(self, srcfile: str|Path, raise_if_none: bool=True):
+	def __init__(self, srcfile: str|Path, mibin: str|Path, raise_if_none: bool=True):
 		self.filepath = Path(srcfile)
-		self.probe = MediaProbe(self.filepath)
+		self.probe = MediaProbe(self.filepath, mibin)
 		self.fps = None if self.probe.fps() == None else float(str(self.probe.fps()))
 		self.resolution = self.probe.resolution(asint=True)
 		self.framecount = None if self.probe.framecount() == None else int(str(self.probe.framecount()))

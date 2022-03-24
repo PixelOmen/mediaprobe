@@ -1,3 +1,2 @@
-include readme.md
-include mediaprobe/bin/Mediainfo
-include mediaprobe/bin/Mediainfo.exe
+include README.md
+include LICENSE.md

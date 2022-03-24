@@ -1,31 +1,21 @@
 """
 A straightforward wrapper for the Mediainfo CLI tool. It calls MediaInfo as a subprocess and parses the returning
-JSON into formatted datatypes relevent to the function called.
+JSON into formatted datatypes relevent to the information requested.
 """
 
 import sys
 import json
 import subprocess as sub
+from enum import Enum
 from pathlib import Path
 from typing import Any, Union, Tuple, List, Dict, overload, Literal
-from enum import Enum
 
-# testfile constant and binary path initialization
-# TESTFILE = r"\\10.0.20.175\rei08\DCI\testing\_Testfiles\Logan_8Ch.mov"
-TESTFILE = r"D:\CodingProjects\testing\_testfiles\black_detection_test_long_8ch.mov"
-
-
-if __name__ == "__main__":
-    if sys.platform == "win32":
-        mibin = str(Path(__file__).parent / "bin" / "mediainfo.exe")
-        useshell = False
-    elif sys.platform == "darwin":
-        mibin = str(Path(__file__).parent / "bin" / "mediainfo")
-        useshell = True
-    else:
-        raise RuntimeError(f"Platform not supported: {sys.platform}")
+if sys.platform == "win32":
+    useshell = False
+elif sys.platform == "darwin":
+    useshell = True
 else:
-    from . import mibin , useshell
+    raise RuntimeError(f"Platform not supported: {sys.platform}")
 
 class Tracktypes(Enum):
     general = "General"
@@ -39,21 +29,18 @@ def get_tracktype_enum(trk_type: str) -> Tracktypes:
     return Tracktypes(trk_type.lower().capitalize())
 
 class MediaProbe:
-    def __init__(self, filepath: Union[str, Path]) -> None:
+    def __init__(self, filepath: Union[str, Path], mibin: Union[str, Path]) -> None:
         self.filepath = filepath
-        self.fulljson: Dict[Any,Any] = MediaProbe.get_json(filepath=filepath, raw=False)
+        self.mibin = mibin
+        self.fulljson: Dict[Any,Any] = self.get_json(raw=False)
 
     @overload
-    @staticmethod
-    def get_json(filepath: Union[str, Path], raw: Literal[False]) -> Dict[Any,Any]:...
+    def get_json(self, raw: Literal[False]) -> Dict[Any,Any]:...
     @overload
-    @staticmethod
-    def get_json(filepath: Union[str, Path], raw: Literal[True]) -> bytes:...
-    @staticmethod
-    def get_json(filepath: Union[str, Path], raw: bool=False):
+    def get_json(self, raw: Literal[True]) -> bytes:...
+    def get_json(self, raw: bool=False):
         """
-        This is a 'pure' static method. It does alter any state or variables anywhere.
-        It communicates with the MediaInfo binary directly and returns the results.
+        This method communicates with the MediaInfo binary directly and returns the results.
 
         It returns a dictionary with 2 keys: 'path' and 'tracks'. 'path' is the original path
         that was passed into this static method. 'tracks' contains a list of tracks where each
@@ -61,13 +48,12 @@ class MediaProbe:
 
         If raw=True it will return the unchanged JSON output(as bytes) straight from the Mediainfo CLI.
         """
-        if not Path(filepath).is_file():
-            raise FileNotFoundError(f"\'{filepath}\' is not a path to a file or does not exist")
+        if not Path(self.filepath).is_file():
+            raise FileNotFoundError(f"\'{self.filepath}\' is not a path to a file or does not exist")
 
-        if " " in str(filepath):
-            filepath = f'"{str(filepath)}"'
+        filepath = f'"{str(self.filepath)}"' if " " in str(self.filepath) else self.filepath
 
-        miproc = sub.Popen(f"{str(mibin)} {str(filepath)} --output=JSON", stdin=sub.PIPE, stdout=sub.PIPE, stderr=sub.PIPE, shell=useshell)
+        miproc = sub.Popen(f"{str(self.mibin)} {str(filepath)} --output=JSON", stdin=sub.PIPE, stdout=sub.PIPE, stderr=sub.PIPE, shell=useshell)
         rawbytes = miproc.stdout.read() #type:ignore
         if raw:
             return rawbytes
@@ -273,8 +259,3 @@ class MediaProbe:
         for track in self.fulljson['tracks']:
             if track['@type'] == tracktype.value:
                 return track.get(searchterm, None)
-
-
-if __name__ == "__main__":
-    probe = MediaProbe(TESTFILE)
-    print(probe.search("Format_Profile", "vIdEo"))
