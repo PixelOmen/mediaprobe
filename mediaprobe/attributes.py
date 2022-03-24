@@ -8,7 +8,7 @@ from .main import MediaProbe
 class MediaAttributes:
 	"""
 	A struct-like dataclass that contains many of the commonly used MediaInfo fields as attributes.
-	It uses an instance the MediaProbe class to gather most of the information, which can be
+	It uses an instance of the MediaProbe class to gather most of the information, which can be
 	accessed directly via the 'probe' attribute.
 	"""
 	filepath: Path
