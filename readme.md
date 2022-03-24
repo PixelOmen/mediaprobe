@@ -7,11 +7,11 @@ The package provides two main classes: MediaProbe and MediaAttributes.
 ___
 
 ### MediaProbe and MediaAttributes
-MediaProbe is compatible with the older python (≤3.9) type hinting syntax and provides information via the instantiated object's method calls, e.g. `testobject.fps()`.
+MediaProbe provides information via the instantiated object's method calls, e.g. `testobject.fps()`. This class can be used directly, but it is also used in the constructor for `MediaAttributes` and stored in the `probe` attribute of that class.
 
-MediaAttributes uses the newer type hinting syntax (≥3.10) and provides a `dataclass` with a more struct-like syntax for accessing the media's information via attributes, e.g. `testobject.fps`.
+MediaAttributes uses the newer type hinting syntax (≥3.10), provides a `dataclass` with `slots`, and uses a more struct-like syntax for accessing the media's information via attributes, e.g. `testobject.fps`.
 
-MediaAttributes also has a special method that can either return the stream number where an audio channel is located, or construct the FFMPEG command needed to extract that specific audio channel. See usage below for more information.
+MediaAttributes also has a special method that can either return the stream number where an audio channel is located, or construct the FFMPEG mapping command needed to extract that specific audio channel. See usage below for more information.
 
 ___
 

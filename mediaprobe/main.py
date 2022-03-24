@@ -18,6 +18,7 @@ else:
     raise RuntimeError(f"Platform not supported: {sys.platform}")
 
 class Tracktypes(Enum):
+    """ Enum of the allowed track types found in a media file (video,audio,etc)"""
     general = "General"
     video = "Video"
     audio = "Audio"
@@ -26,9 +27,29 @@ class Tracktypes(Enum):
     other = "Other"
 
 def get_tracktype_enum(trk_type: str) -> Tracktypes:
+    ''' Convertes a track type string into an instance of the TrackTypes enum'''
     return Tracktypes(trk_type.lower().capitalize())
 
 class MediaProbe:
+    """
+    A container class for holding information about a media file.\n
+    The constructor takes in the path to the file and the path to a MediaInfo binary. Both
+    of these paths can be accessed as attributes, but most useful information about the file
+    should be accessed via methods. There is also an additional single attribute that contains
+    the full JSON output converted to a python dict.
+
+    ----------
+    Attributes
+    ----------
+    filepath : str | Path
+        The path to the media file passed into the constructor
+
+    mibin : str | Path
+        The path to the MediaInfo binary passed into the contructor
+
+    fulljson : dict
+        Returns a nested dict containing the full converted JSON output from MediaInfo
+    """
     def __init__(self, filepath: Union[str, Path], mibin: Union[str, Path]) -> None:
         self.filepath = filepath
         self.mibin = mibin
@@ -130,7 +151,7 @@ class MediaProbe:
 
         If 'streams=True', it instead returns a list of tuples.
         The tuples contain the index of the stream and the number of channels in that stream.
-        If 'pids=True', it returns the pids in the first pos of the tuple instead of the stream index.
+        If 'pids=True', it returns the pid in the first position of the tuple instead of the stream index.
         """
         chs_perstream = []
         audiostreams = []
@@ -162,7 +183,7 @@ class MediaProbe:
 
     def streamtypes(self) -> List[str]:
         """
-        Returns a list that contains types for each stream, in order.
+        Returns a list that contains type for each stream, in order.
         """
         alltypes = []
         order = []

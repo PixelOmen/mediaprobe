@@ -6,6 +6,11 @@ from .main import MediaProbe
 
 @dataclass(slots=True)
 class MediaAttributes:
+	"""
+	A struct-like dataclass that contains many of the commonly used MediaInfo fields as attributes.
+	It uses an instance the MediaProbe class to gather most of the information, which can be
+	accessed directly via the 'probe' attribute.
+	"""
 	filepath: Path
 	probe: MediaProbe
 	streamcount: int
@@ -21,6 +26,7 @@ class MediaAttributes:
 
 
 	def __init__(self, srcfile: str|Path, mibin: str|Path, raise_if_none: bool=True):
+		""" If raise_if_none=True (default), it will raise an exception if unable to parse framerate, resolution, or framecount"""
 		self.filepath = Path(srcfile)
 		self.probe = MediaProbe(self.filepath, mibin)
 		self.fps = None if self.probe.fps() == None else float(str(self.probe.fps()))
@@ -37,6 +43,7 @@ class MediaAttributes:
 			self.raise_if_none()
 
 	def raise_if_none(self) -> None:
+		""" Raises an exception if unable to parse frame, resolution, or framecount"""
 		nonetypes = {
 			"framerate": self.fps,
 			"resolution": self.resolution,
@@ -51,6 +58,10 @@ class MediaAttributes:
 	@overload
 	def find_audiostream(self, ch: int, ffcmd: Literal[True]=True) -> str|None:...
 	def find_audiostream(self, ch: int, ffcmd: bool=False) -> int|str|None:
+		"""
+		If ffcmd=False (default), this return the stream number where an audio channel is located.
+		If ffcmd=True, this constructs the FFMPEG mapping command needed to extract that specific audio channel.
+		"""
 		if self.audiocount == None:
 			raise ValueError(f'Cannot find stream because MediaAttributes.audiocount = None.')
 		if ch > self.audiocount or ch <= 0:
