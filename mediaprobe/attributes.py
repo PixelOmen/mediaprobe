@@ -43,7 +43,7 @@ class MediaAttributes:
 			self.raise_if_none()
 
 	def raise_if_none(self) -> None:
-		""" Raises an exception if unable to parse frame, resolution, or framecount"""
+		""" Raises an exception if unable to parse framerate, resolution, or framecount"""
 		nonetypes = {
 			"framerate": self.fps,
 			"resolution": self.resolution,
