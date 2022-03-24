@@ -18,7 +18,7 @@ setup(
         'Programming Language :: Python :: 3 :: Only',
     ],
     packages=['mediaprobe'],
-    python_requires='>=3.6, <4',
+    python_requires='>=3.10, <4',
     install_requires=[],
     include_package_data=True,
 )
