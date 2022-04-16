@@ -204,7 +204,7 @@ class MediaProbe:
             return []
 
         tosort = [x for x in zip(alltypes, order)]
-        tosort.sort(key= lambda x:x[1])
+        tosort.sort(key= lambda x:int(x[1]))
         sorted = [x[0] for x in tosort]
 
         return sorted
